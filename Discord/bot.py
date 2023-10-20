@@ -1,28 +1,41 @@
 import discord 
-import discord.ext
-from discord import app_commands
 import os 
 from dotenv import load_dotenv 
 
 load_dotenv('discord.env') 
 
-server_id = discord.Object(1158820053182054510)
+source_server_id = 1004440666501300224  
+target_server_id = 1158820053182054510  
+
+source_server_channel_id = 1164935614219702343  
+target_server_channel_id = 1164935756029120532  
 
 intents = discord.Intents.all() 
 
-client = discord.Client(intents=intents)
-tree = discord.app_commands.CommandTree(client)
+list_of_other_channels = 1164935756029120532
 
-# sync the slash command to your server
+client = discord.Client(intents=intents)
+
 @client.event
 async def on_ready():
-    await tree.sync(guild=server_id)
-    print("Command is ready")
+    print('Bot is ready')
 
-# make the slash command
-@tree.command(name="council", description="The council will decide your fate.")
-async def slash_command(interaction: discord.Interaction):    
-    await interaction.response.send_message("The council has determined your fate.")
+@client.event
+async def on_message(message):
+    if message.guild.id == source_server_id and message.channel.id == source_server_channel_id:
+        target_guild = client.get_guild(target_server_id)
+        target_channel = target_guild.get_channel(target_server_channel_id)
 
-# run the bot
+        if target_channel:
+            embed = discord.Embed( 
+                color=discord.Color.blue(),
+                title=f'Server: {message.guild.name}',
+                description=f'{message.content}'
+            )
+
+            embed.set_footer(text=f"{message.author.display_name} | Announcement")
+
+            await target_channel.send(embed=embed)
+
+
 client.run(os.getenv("DISCORD_TOKEN"))
